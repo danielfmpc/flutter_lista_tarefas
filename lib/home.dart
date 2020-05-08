@@ -14,8 +14,43 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Lista de Tarefas"),
+        backgroundColor: Colors.blueAccent,
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            Container(
+              padding: EdgeInsets.fromLTRB(17, 1, 7, 1),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        labelText: "Nova Tarefa",
+                        labelStyle: TextStyle(
+                          color: Colors.blueAccent
+                        ),
+                      ),
+                    ),
+                  ),
+                  RaisedButton(
+                    child: Text(
+                      "Crir"                      
+                    ),
+                    textColor: Colors.white,
+                    color: Colors.blueAccent,
+                    onPressed: (){}
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -23,7 +58,6 @@ class _HomeState extends State<Home> {
     final directory = await getApplicationSupportDirectory();
     return File("${directory.path}/data.json");
   }
-
   Future<File> _saveData() async {
     String data = json.encode(_toDoList);
     final file = await _getFile();
