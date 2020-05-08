@@ -13,6 +13,18 @@ class _HomeState extends State<Home> {
   final _textEditingController = TextEditingController();
   List _toDoList = [];
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    
+    _readData().then((data) {
+      setState(() {
+        _toDoList = jsonDecode(data);
+      });
+    });
+  }
+
   void _addToDoList(){
     setState(() {
       Map<String, dynamic> newToDo = Map();
@@ -20,6 +32,7 @@ class _HomeState extends State<Home> {
       _textEditingController.text = "";
       newToDo["ok"] = false;
       _toDoList.add(newToDo);
+      _saveData();
     });
   }
 
@@ -50,7 +63,7 @@ class _HomeState extends State<Home> {
                 ),
                 RaisedButton(
                   child: Text(
-                    "Crir"                      
+                    "Criar"                      
                   ),
                   textColor: Colors.white,
                   color: Colors.blueAccent,
@@ -70,6 +83,7 @@ class _HomeState extends State<Home> {
                   onChanged: (value){
                     setState(() {
                       _toDoList[index]["ok"] = value;
+                      _saveData();
                     });
                   },
                   secondary: CircleAvatar(
