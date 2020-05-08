@@ -17,7 +17,7 @@ class _HomeState extends State<Home> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    
+
     _readData().then((data) {
       setState(() {
         _toDoList = jsonDecode(data);
@@ -76,26 +76,42 @@ class _HomeState extends State<Home> {
             child: ListView.builder(
               padding: EdgeInsets.only(top: 10),
               itemCount: _toDoList.length,
-              itemBuilder: (context, index){
-                return CheckboxListTile(
-                  title: Text(_toDoList[index]["title"]),
-                  value: _toDoList[index]["ok"],
-                  onChanged: (value){
-                    setState(() {
-                      _toDoList[index]["ok"] = value;
-                      _saveData();
-                    });
-                  },
-                  secondary: CircleAvatar(
-                    child: Icon(
-                      _toDoList[index]["ok"] ? Icons.check : Icons.error
-                    ),
-                  ),
-                );
-              },
+              itemBuilder: buildItem,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget buildItem(context, index){
+    return Dismissible(
+      key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
+      background: Container(
+        color: Colors.red,
+        child: Align(
+          alignment: Alignment(-0.9, 0),
+          child: Icon(
+            Icons.delete,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      direction: DismissDirection.startToEnd,
+      child: CheckboxListTile(
+        title: Text(_toDoList[index]["title"]),
+        value: _toDoList[index]["ok"],
+        onChanged: (value){
+          setState(() {
+            _toDoList[index]["ok"] = value;
+            _saveData();
+          });
+        },
+        secondary: CircleAvatar(
+          child: Icon(
+            _toDoList[index]["ok"] ? Icons.check : Icons.error
+          ),
+        ),
       ),
     );
   }
