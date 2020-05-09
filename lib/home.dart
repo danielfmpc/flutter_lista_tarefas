@@ -11,7 +11,12 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final _textEditingController = TextEditingController();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   List _toDoList = [];
+  Map<String, dynamic> _lastRemoved;
+  int _lastRemovedPos;
+  
 
   @override
   void initState() {
@@ -25,15 +30,31 @@ class _HomeState extends State<Home> {
     });
   }
 
-  void _addToDoList(){
+  void _addToDoList(){   
     setState(() {
       Map<String, dynamic> newToDo = Map();
       newToDo["title"] = _textEditingController.text;
       _textEditingController.text = "";
       newToDo["ok"] = false;
       _toDoList.add(newToDo);
+      _formKey = GlobalKey<FormState>();
       _saveData();
     });
+  }
+
+  Future<Null> _refresh() async{
+    await Future.delayed(Duration(seconds: 1));
+
+    setState(() {
+      _toDoList.sort((a, b){
+        if(a["ok"] && !b["ok"]) return 1;
+        else if(!a["ok"] && b["ok"]) return -1;
+        else return 0;
+      });
+
+      _saveData();
+    });
+    return null;
   }
 
   @override
@@ -48,35 +69,50 @@ class _HomeState extends State<Home> {
         children: <Widget>[
           Container(
             padding: EdgeInsets.fromLTRB(17, 1, 7, 1),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextField(
-                    controller: _textEditingController,
-                    decoration: InputDecoration(
-                      labelText: "Nova Tarefa",
-                      labelStyle: TextStyle(
-                        color: Colors.blueAccent
+            child: Form(
+              key: _formKey,
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextFormField(
+                      validator: (value){
+                        if(value.isEmpty){
+                          return "Insira uma tarefa";
+                        }
+                      },                    
+                      controller: _textEditingController,
+                      decoration: InputDecoration(
+                        labelText: "Nova Tarefa",
+                        labelStyle: TextStyle(
+                          color: Colors.blueAccent
+                        ),
                       ),
                     ),
                   ),
-                ),
-                RaisedButton(
-                  child: Text(
-                    "Criar"                      
+                  RaisedButton(
+                    child: Text(
+                      "Criar"                      
+                    ),
+                    textColor: Colors.white,
+                    color: Colors.blueAccent,
+                    onPressed: (){
+                      if(_formKey.currentState.validate()){
+                        _addToDoList();
+                      }
+                    },
                   ),
-                  textColor: Colors.white,
-                  color: Colors.blueAccent,
-                  onPressed: _addToDoList,
-                ),
-              ],
-            ),
+                ],
+              ),
+            )
           ),
           Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.only(top: 10),
-              itemCount: _toDoList.length,
-              itemBuilder: buildItem,
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView.builder(
+                padding: EdgeInsets.only(top: 10),
+                itemCount: _toDoList.length,
+                itemBuilder: buildItem,
+              ),
             ),
           ),
         ],
@@ -113,6 +149,30 @@ class _HomeState extends State<Home> {
           ),
         ),
       ),
+      onDismissed: (direction){
+        setState(() {
+          _lastRemoved = Map.from(_toDoList[index]);
+          _lastRemovedPos = index;
+          _toDoList.removeAt(index);
+          _saveData();
+
+          final snack = SnackBar(
+            duration: Duration(seconds: 2),
+            content: Text("Tarefa \"${_lastRemoved["title"]}\" removida"),
+            action: SnackBarAction(
+              label: "Desfazer",
+              onPressed: (){
+                setState(() {
+                  _toDoList.insert(_lastRemovedPos, _lastRemoved);
+                  _saveData();
+                });
+              },
+            ),
+          );
+          Scaffold.of(context).removeCurrentSnackBar();   
+          Scaffold.of(context).showSnackBar(snack);
+        });
+      },
     );
   }
 
